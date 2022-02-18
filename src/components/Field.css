@@ -1,0 +1,9 @@
+.field {
+    position: relative;
+    padding: 1rem;
+}
+
+.tile-container {
+    position: absolute;
+    padding: 0.25rem;
+}
