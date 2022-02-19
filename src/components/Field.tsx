@@ -1,16 +1,24 @@
-import { useObservableState } from "observable-hooks";
-import React, { useEffect, useMemo } from "react";
-import { FieldModel, FieldModelOptions } from "../models/fieldModel";
-import { TilePosition } from "../types/tilePosition";
-import { getTilePositionId } from "../utils/getPositionId";
+import React, { useEffect, useMemo, useState } from "react";
 import { Tile } from "./Tile";
 import "./Field.css";
+import {
+  createWorldEntity,
+  WorldEntity,
+  WorldEntityConfig,
+} from "../engine/factories/world";
+import { Position } from "../engine/types/position";
+import { useObservableState } from "observable-hooks";
+import { Timer } from "./Timer";
 
 export type FieldProps = {};
 
-const FIELD_MODEL_OPTIONS: FieldModelOptions = {
-  size: { width: 15, height: 15 },
-  bombs: 40,
+const WORLD_CONFIG: WorldEntityConfig = {
+  size: {
+    x: { start: 0, end: 9 },
+    y: { start: 0, end: 9 },
+    z: { start: 0, end: 0 },
+  },
+  bombsRatio: 0.1,
 };
 
 const TILE_CONTAINER_CSS_SIZE = {
@@ -19,41 +27,67 @@ const TILE_CONTAINER_CSS_SIZE = {
   unit: "rem",
 };
 
+const MemoizedTile = React.memo(Tile);
+
 export const Field = () => {
-  const options = FIELD_MODEL_OPTIONS;
-  const field = useMemo(() => new FieldModel(options), []);
-  const didAnyBombExploded = useObservableState(field.didAnyBombExploded$);
-  const remainingBombMarks = useObservableState(field.remainingBombMarks$);
-  const remainingTilesToSweep = useObservableState(field.remainingTilesToSweep$);
+  const [world, setWorld] = useState<WorldEntity>(
+    createWorldEntity(WORLD_CONFIG)
+  );
+
+  const restart = () => {
+    const newWorld = createWorldEntity(WORLD_CONFIG);
+    setWorld(newWorld);
+  };
+
   const styles = useMemo<React.CSSProperties>(() => {
-    const widthValue = field.size.width * TILE_CONTAINER_CSS_SIZE.width;
-    const heightValue = field.size.height * TILE_CONTAINER_CSS_SIZE.height;
+    const widthValue =
+      (world.size.x.end - world.size.x.start) * TILE_CONTAINER_CSS_SIZE.width;
+    const heightValue =
+      (world.size.y.end - world.size.y.start) * TILE_CONTAINER_CSS_SIZE.height;
     return {
       width: `${widthValue}${TILE_CONTAINER_CSS_SIZE.unit}`,
       height: `${heightValue}${TILE_CONTAINER_CSS_SIZE.unit}`,
     };
-  }, [field]);
-  useEffect(() => {
-    if (!didAnyBombExploded) return;
-    alert('You lost!');
-  }, [didAnyBombExploded]);
-  useEffect(() => {
-    if (!field.getDidGameStarted()) return;
-    if (remainingTilesToSweep) return;
-    alert('You won!');
-  }, [remainingTilesToSweep])
+  }, []);
+  const locations = world.getLocations();
+  const data = useObservableState(world.data$);
+
+  const endGameText = useMemo<string>(() => {
+    if (!data || !data.didGameEnded) return "";
+    return data.didAnyBombExploded ? "You lost" : "You won";
+  }, [data?.didGameEnded, data?.didAnyBombExploded]);
+
+  if (!data) return null;
   return (
     <>
-      <div>{didAnyBombExploded ? "ANO" : "NE"}</div>
-      <div>Remaining tiles to sweep: {remainingTilesToSweep}</div>
-      <div>Remaining bombs: {remainingBombMarks}</div>
+      <div>
+        <button onClick={restart}>Restart</button>
+      </div>
+
+      <div className="game-info-container">
+        {data.startedTime ? (
+          <>
+            <Timer
+              startedTime={data.startedTime}
+              didEnded={data.didGameEnded}
+            />
+            <div>
+              Remaining bombs: {data.plantedBombsCount - data.bombMarksCount}
+            </div>
+            <div>{endGameText}</div>
+          </>
+        ) : null}
+      </div>
       <div className="field" style={styles}>
-        {field.tiles.map((tile) => (
+        {locations.map((location) => (
           <TileContainer
-            key={getTilePositionId(tile.position)}
-            position={tile.position}
+            key={`x${location.position.x}y${location.position.y}z${location.position.z}`}
+            position={location.position}
           >
-            <Tile tile={tile} />
+            <MemoizedTile
+              location={location}
+              didGameEnded={data.didGameEnded}
+            />
           </TileContainer>
         ))}
       </div>
@@ -61,7 +95,7 @@ export const Field = () => {
   );
 };
 
-const TileContainer: React.FC<{ position: TilePosition }> = ({
+const TileContainer: React.FC<{ position: Position }> = ({
   position,
   children,
 }) => {

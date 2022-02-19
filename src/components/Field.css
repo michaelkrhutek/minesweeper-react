@@ -1,9 +1,14 @@
 .field {
     position: relative;
     padding: 1rem;
+    margin: auto;
 }
 
 .tile-container {
     position: absolute;
     padding: 0.25rem;
+}
+
+.game-info-container {
+    min-height: 5rem;
 }

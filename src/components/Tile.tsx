@@ -1,32 +1,32 @@
 import { useObservableState } from "observable-hooks";
-import { TileData, TileModel } from "../models/tileModel";
-import { getNextTag } from "../utils/getNextTag";
-import "./Tile.css"
-
-enum TileTag {
-  None = "none",
-  Bomb = "bomb",
-  QuestionMark = "question_mark",
-}
+import { LocationMarkType } from "../engine/enums/locationMarkType";
+import { LocationEntity, LocationData } from "../engine/factories/location";
+import "./Tile.css";
 
 export type TileProps = {
-  tile: TileModel;
+  location: LocationEntity;
+  didGameEnded: boolean;
 };
 
-export const Tile: React.FC<TileProps> = ({ tile }) => {
-  const data = useObservableState(tile.reactiveData$);
+export const Tile: React.FC<TileProps> = ({ location, didGameEnded }) => {
+  const data = useObservableState(location.data$);
   if (!data) return null;
-  const { isSweeped, tag } = data;
-  const even = (tile.position.x + tile.position.y) % 2 === 0;
+  const { isRevealed, mark } = data;
+  const even = (location.position.x + location.position.y) % 2 === 0;
   const onLeftClick = () => {
-    if (data.tag !== TileTag.None) return;
-    tile.sweep();
+    if (didGameEnded) return;
+    if (data.mark !== LocationMarkType.None) return;
+    location.reveal();
   };
   const onRightClick = () => {
-    const nextTag = getNextTag(tag);
-    tile.setTag(nextTag);
+    if (didGameEnded) return;
+    const nextMark =
+      mark === LocationMarkType.None
+        ? LocationMarkType.Bomb
+        : LocationMarkType.None;
+    location.setMark(nextMark);
   };
-  return isSweeped ? (
+  return isRevealed ? (
     <SweepedTile data={data} even={even} />
   ) : (
     <NotSweepedTile
@@ -38,18 +38,17 @@ export const Tile: React.FC<TileProps> = ({ tile }) => {
   );
 };
 
-const TILE_TAG_ICON: Record<TileTag, string> = {
-  [TileTag.None]: "",
-  [TileTag.Bomb]: "🚩",
-  [TileTag.QuestionMark]: "❓",
+const LocationMarkIcon: Record<LocationMarkType, string> = {
+  [LocationMarkType.None]: "",
+  [LocationMarkType.Bomb]: "🚩",
 };
 
 const NotSweepedTile: React.FC<{
-  data: TileData;
+  data: LocationData;
   even: boolean;
   onLeftClick(): void;
   onRightClick(): void;
-}> = ({ data: { tag }, even, onLeftClick, onRightClick }) => {
+}> = ({ data: { mark }, even, onLeftClick, onRightClick }) => {
   return (
     <div
       className={`tile ${
@@ -61,22 +60,22 @@ const NotSweepedTile: React.FC<{
         onRightClick();
       }}
     >
-      {TILE_TAG_ICON[tag]}
+      {LocationMarkIcon[mark]}
     </div>
   );
 };
 
-const SweepedTile: React.FC<{ data: TileData; even: boolean }> = ({
-  data: { hasBomb, bombsAround },
+const SweepedTile: React.FC<{ data: LocationData; even: boolean }> = ({
+  data: { hasBomb, surroundingBombs },
   even,
 }) => {
   if (hasBomb) return <div className="tile bomb">💣</div>;
   return (
     <div
       className={`tile ${even ? "sweeped-tile-even" : "sweeped-tile-odd"}`}
-      style={{ color: getBombsAroundFontColor(bombsAround) }}
+      style={{ color: getBombsAroundFontColor(surroundingBombs) }}
     >
-      {bombsAround || ""}
+      {surroundingBombs || ""}
     </div>
   );
 };

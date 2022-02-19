@@ -1,0 +1,3 @@
+export enum WorldEventType {
+    AllBombsPlanted,
+}
