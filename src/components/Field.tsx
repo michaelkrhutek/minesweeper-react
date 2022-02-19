@@ -1,14 +1,14 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Tile } from "./Tile";
 import "./Field.css";
-import {
-  createWorldEntity,
-  WorldEntity,
-  WorldEntityConfig,
-} from "../engine/factories/world";
-import { Position } from "../engine/types/position";
 import { useObservableState } from "observable-hooks";
 import { Timer } from "./Timer";
+import {
+  WorldEntityConfig,
+  WorldEntity,
+  createWorldEntity,
+  Position,
+} from "../engine";
 
 export type FieldProps = {};
 

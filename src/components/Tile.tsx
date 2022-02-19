@@ -1,6 +1,6 @@
 import { useObservableState } from "observable-hooks";
+import { LocationData, LocationEntity } from "../engine";
 import { LocationMarkType } from "../engine/enums/locationMarkType";
-import { LocationEntity, LocationData } from "../engine/factories/location";
 import "./Tile.css";
 
 export type TileProps = {
