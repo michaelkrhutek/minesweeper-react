@@ -1,4 +1,4 @@
-.tile {
+.location {
     width: 100%;
     height: 100%;
     display: flex;
@@ -7,19 +7,19 @@
     font-weight: bold;
 }
 
-.sweeped-tile-even {
+.revealed-location-even {
     background-color: #fff;
 }
 
-.sweeped-tile-odd {
+.revealed-location-odd {
     background-color: #eee;
 }
 
-.not-sweeped-tile-even {
+.not-revealed-location-even {
     background-color: #999;
 }
 
-.not-sweeped-tile-odd {
+.not-revealed-location-odd {
     background-color: #888;
 }
 

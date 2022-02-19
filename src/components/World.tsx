@@ -1,6 +1,6 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { Tile } from "./Tile";
-import "./Field.css";
+import React, { useMemo, useState } from "react";
+import { Location } from "./Location";
+import "./World.css";
 import { useObservableState } from "observable-hooks";
 import { Timer } from "./Timer";
 import {
@@ -8,9 +8,9 @@ import {
   WorldEntity,
   createWorldEntity,
   Position,
-} from "../engine";
+} from "minesweeper-entity";
 
-export type FieldProps = {};
+export type WorldProps = {};
 
 const WORLD_CONFIG: WorldEntityConfig = {
   size: {
@@ -21,15 +21,15 @@ const WORLD_CONFIG: WorldEntityConfig = {
   bombsRatio: 0.1,
 };
 
-const TILE_CONTAINER_CSS_SIZE = {
+const LOCATION_CONTAINER_CSS_SIZE = {
   width: 2.5,
   height: 2.5,
   unit: "rem",
 };
 
-const MemoizedTile = React.memo(Tile);
+const MemoizedLocation = React.memo(Location);
 
-export const Field = () => {
+export const World = () => {
   const [world, setWorld] = useState<WorldEntity>(
     createWorldEntity(WORLD_CONFIG)
   );
@@ -41,12 +41,14 @@ export const Field = () => {
 
   const styles = useMemo<React.CSSProperties>(() => {
     const widthValue =
-      (world.size.x.end - world.size.x.start) * TILE_CONTAINER_CSS_SIZE.width;
+      (world.size.x.end - world.size.x.start) *
+      LOCATION_CONTAINER_CSS_SIZE.width;
     const heightValue =
-      (world.size.y.end - world.size.y.start) * TILE_CONTAINER_CSS_SIZE.height;
+      (world.size.y.end - world.size.y.start) *
+      LOCATION_CONTAINER_CSS_SIZE.height;
     return {
-      width: `${widthValue}${TILE_CONTAINER_CSS_SIZE.unit}`,
-      height: `${heightValue}${TILE_CONTAINER_CSS_SIZE.unit}`,
+      width: `${widthValue}${LOCATION_CONTAINER_CSS_SIZE.unit}`,
+      height: `${heightValue}${LOCATION_CONTAINER_CSS_SIZE.unit}`,
     };
   }, []);
   const locations = world.getLocations();
@@ -78,39 +80,39 @@ export const Field = () => {
           </>
         ) : null}
       </div>
-      <div className="field" style={styles}>
+      <div className="world" style={styles}>
         {locations.map((location) => (
-          <TileContainer
+          <LocationContainer
             key={`x${location.position.x}y${location.position.y}z${location.position.z}`}
             position={location.position}
           >
-            <MemoizedTile
+            <MemoizedLocation
               location={location}
               didGameEnded={data.didGameEnded}
             />
-          </TileContainer>
+          </LocationContainer>
         ))}
       </div>
     </>
   );
 };
 
-const TileContainer: React.FC<{ position: Position }> = ({
+const LocationContainer: React.FC<{ position: Position }> = ({
   position,
   children,
 }) => {
   const styles = useMemo<React.CSSProperties>(() => {
-    const topValue: number = position.y * TILE_CONTAINER_CSS_SIZE.height;
-    const leftValue: number = position.x * TILE_CONTAINER_CSS_SIZE.width;
+    const topValue: number = position.y * LOCATION_CONTAINER_CSS_SIZE.height;
+    const leftValue: number = position.x * LOCATION_CONTAINER_CSS_SIZE.width;
     return {
-      width: `${TILE_CONTAINER_CSS_SIZE.width}${TILE_CONTAINER_CSS_SIZE.unit}`,
-      height: `${TILE_CONTAINER_CSS_SIZE.height}${TILE_CONTAINER_CSS_SIZE.unit}`,
-      top: `${topValue}${TILE_CONTAINER_CSS_SIZE.unit}`,
-      left: `${leftValue}${TILE_CONTAINER_CSS_SIZE.unit}`,
+      width: `${LOCATION_CONTAINER_CSS_SIZE.width}${LOCATION_CONTAINER_CSS_SIZE.unit}`,
+      height: `${LOCATION_CONTAINER_CSS_SIZE.height}${LOCATION_CONTAINER_CSS_SIZE.unit}`,
+      top: `${topValue}${LOCATION_CONTAINER_CSS_SIZE.unit}`,
+      left: `${leftValue}${LOCATION_CONTAINER_CSS_SIZE.unit}`,
     };
   }, [position.x, position.y]);
   return (
-    <div className="tile-container" style={styles}>
+    <div className="location-container" style={styles}>
       {children}
     </div>
   );

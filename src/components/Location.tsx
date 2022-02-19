@@ -1,14 +1,17 @@
+import {
+  LocationEntity,
+  LocationMarkType,
+  LocationData,
+} from "minesweeper-entity";
 import { useObservableState } from "observable-hooks";
-import { LocationData, LocationEntity } from "../engine";
-import { LocationMarkType } from "../engine/enums/locationMarkType";
-import "./Tile.css";
+import "./Location.css";
 
-export type TileProps = {
+export type LocationProps = {
   location: LocationEntity;
   didGameEnded: boolean;
 };
 
-export const Tile: React.FC<TileProps> = ({ location, didGameEnded }) => {
+export const Location: React.FC<LocationProps> = ({ location, didGameEnded }) => {
   const data = useObservableState(location.data$);
   if (!data) return null;
   const { isRevealed, mark } = data;
@@ -27,9 +30,9 @@ export const Tile: React.FC<TileProps> = ({ location, didGameEnded }) => {
     location.setMark(nextMark);
   };
   return isRevealed ? (
-    <SweepedTile data={data} even={even} />
+    <RevealedLocation data={data} even={even} />
   ) : (
-    <NotSweepedTile
+    <NotRevealedLocation
       data={data}
       even={even}
       onLeftClick={onLeftClick}
@@ -43,7 +46,7 @@ const LocationMarkIcon: Record<LocationMarkType, string> = {
   [LocationMarkType.Bomb]: "🚩",
 };
 
-const NotSweepedTile: React.FC<{
+const NotRevealedLocation: React.FC<{
   data: LocationData;
   even: boolean;
   onLeftClick(): void;
@@ -51,8 +54,8 @@ const NotSweepedTile: React.FC<{
 }> = ({ data: { mark }, even, onLeftClick, onRightClick }) => {
   return (
     <div
-      className={`tile ${
-        even ? "not-sweeped-tile-even" : "not-sweeped-tile-odd"
+      className={`location ${
+        even ? "not-revealed-location-even" : "not-revealed-location-odd"
       }`}
       onClick={onLeftClick}
       onContextMenu={(event) => {
@@ -65,14 +68,14 @@ const NotSweepedTile: React.FC<{
   );
 };
 
-const SweepedTile: React.FC<{ data: LocationData; even: boolean }> = ({
+const RevealedLocation: React.FC<{ data: LocationData; even: boolean }> = ({
   data: { hasBomb, surroundingBombs },
   even,
 }) => {
-  if (hasBomb) return <div className="tile bomb">💣</div>;
+  if (hasBomb) return <div className="location bomb">💣</div>;
   return (
     <div
-      className={`tile ${even ? "sweeped-tile-even" : "sweeped-tile-odd"}`}
+      className={`location ${even ? "revealed-location-even" : "revealed-location-odd"}`}
       style={{ color: getBombsAroundFontColor(surroundingBombs) }}
     >
       {surroundingBombs || ""}
